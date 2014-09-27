@@ -64,7 +64,7 @@ def join_pdf(files, output='all.pdf', ensure_duplex=True):
 
 def join_straight(files, output):
     arg = ' '.join(['"%s"'%x for x in files])
-    cmd = 'pdfjoin %s -o %s.pdf'%(arg,output)
+    cmd = 'pdfjoin %s -o %s'%(arg,output)
     print cmd
     subprocess.check_call(cmd, shell=True);
 
