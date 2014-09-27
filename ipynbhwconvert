@@ -6,7 +6,7 @@ import argparse
 import os
 import re
 import pyPdf
-
+import time
 
 
 parser = argparse.ArgumentParser()
@@ -47,7 +47,7 @@ def nup_pdf(files):
         print flist
         arg = ' '.join(['"%s"'%x for x in flist])
         #print arg
-        nupcmd = 'pdfnup --nup 2x1 %s -o %s.pdf'%(arg,pref)
+        nupcmd = 'pdfnup --nup 2x1 %s -o %s-nup.pdf'%(arg,pref)
         print nupcmd
         subprocess.call(nupcmd, shell=True)
         subprocess.call('rm %s'%arg, shell=True)
@@ -83,6 +83,7 @@ def join_ensure_duplex(files, output):
     print cmd
     subprocess.check_call(cmd, shell=True);
 
+time.sleep(3) #wait for file to be deleted
 allpdf = glob.glob('*.pdf')
 print allpdf
 join_pdf(allpdf, args.output, args.duplex)
