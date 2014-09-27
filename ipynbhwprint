@@ -1,0 +1,23 @@
+#!/usr/bin/env python
+
+import argparse
+import subprocess
+
+parser = argparse.ArgumentParser()
+parser.add_argument('inputdir')
+args = parser.parse_args()
+
+lpstatout = subprocess.check_output('lpstat -a', shell=True)
+printers = [x.split()[0] for x in lpstatout.split('\n')[:-1]]
+
+def selectprinter(printers):
+    print "Please Select Printer"
+    for i, p in enumerate(printers):
+        print i, p
+    x = raw_input("Select a printer: ")
+    x = int(x)
+    assert(x>=0 and x<len(printers))
+    print printers[x], 'selected'
+    return int(x)
+
+selectprinter(printers)

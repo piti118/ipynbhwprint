@@ -1,0 +1,85 @@
+import subprocess
+import glob
+import argparse
+import os
+import re
+import pyPdf
+
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('inputdir')
+parser.add_argument('-o', '--output', default='all.pdf')
+parser.add_argument('--duplex', dest='duplex', action='store_true')
+parser.add_argument('--no-duplex', dest='duplex', action='store_false')
+parser.set_defaults(duplex=True)
+args = parser.parse_args()
+
+files = glob.glob(args.inputdir+'/*.ipynb')
+subprocess.call('pwd', shell=True)
+def convert_all_ipynb(files):
+    #convert all ipynb file in the directory to pdf and remove extra file
+    for f in files:
+        cmd = 'ipython nbconvert --to latex --post pdf "%s"'%f
+        print cmd
+        subprocess.check_call(cmd, shell=True)
+        (root, ext) = os.path.splitext(os.path.basename(f))
+        rmtexcmd = 'rm -r "%s.tex" "%s_files"'%(root, root)
+        print rmtexcmd
+        subprocess.call(rmtexcmd, shell=True)
+convert_all_ipynb(files)
+
+#now nup merge pdf file by prefix
+def nup_pdf(files):
+    prefix_map = dict()
+    for f in files:
+        bname = os.path.basename(f)
+        (root, ext) = os.path.splitext(os.path.basename(f))
+        pref = re.split('-|_',root)[0]
+        #print pref
+        prefix_map[pref] = root
+    
+    for pref, f in prefix_map.items():
+        flist = glob.glob('%s*.pdf'%pref)
+        flist = filter( lambda x: not x.endswith('nup.pdf'), flist)
+        print flist
+        arg = ' '.join(['"%s"'%x for x in flist])
+        #print arg
+        nupcmd = 'pdfnup --nup 2x1 %s -o %s.pdf'%(arg,pref)
+        print nupcmd
+        subprocess.call(nupcmd, shell=True)
+        subprocess.call('rm %s'%arg, shell=True)
+nup_pdf(files);
+
+
+def count_pages(f):
+    reader = pyPdf.PdfFileReader(open(f))
+    return reader.getNumPages()
+
+def join_pdf(files, output='all.pdf', ensure_duplex=True):
+    if ensure_duplex:
+        join_ensure_duplex(files, output)
+
+def join_straight(files, output):
+    arg = ' '.join(['"%s"'%x for x in files])
+    cmd = 'pdfjoin %s -o %s.pdf'%(arg,output)
+    print cmd
+    subprocess.check_call(cmd, shell=True);
+
+def join_ensure_duplex(files, output):
+    joinarg = []
+    for f in files:
+        pages = count_pages(f)
+        sel = '1-,{}' if pages%2!=0 else '1-'
+        joinarg += [f]
+        joinarg += [sel]
+    arg = ' '.join(['"%s"'%x for x in joinarg])
+
+    cmd = 'pdfjoin %s -o %s'%(arg,output)
+    print cmd
+    subprocess.check_call(cmd, shell=True);
+
+allpdf = glob.glob('*.pdf')
+print allpdf
+join_pdf(allpdf, args.output, args.duplex)
+
