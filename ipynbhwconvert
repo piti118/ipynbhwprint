@@ -59,6 +59,8 @@ def count_pages(f):
 def join_pdf(files, output='all.pdf', ensure_duplex=True):
     if ensure_duplex:
         join_ensure_duplex(files, output)
+    else:
+        join_straight(files, output)
 
 def join_straight(files, output):
     arg = ' '.join(['"%s"'%x for x in files])
@@ -82,4 +84,3 @@ def join_ensure_duplex(files, output):
 allpdf = glob.glob('*.pdf')
 print allpdf
 join_pdf(allpdf, args.output, args.duplex)
-
